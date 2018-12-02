@@ -10,12 +10,12 @@ import Lib
 main :: IO ()
 main = do
   args <- parseArgs
-  print =<< main' args
+  putStrLn =<< main' args
 
-main' :: StandardArgs -> IO Int
+main' :: StandardArgs -> IO String
 main' (StdArgs fp p)
-  | p == 1 = part1 <$> input
-  | otherwise = undefined
+  | p == 1 = show . part1 <$> input
+  | otherwise = unlines . part2 <$> input
   where input = lines <$> readFile fp
 
 part1 :: [String] -> Int
@@ -29,3 +29,18 @@ part1 ss = uncurry (*) $ foldr go (0, 0) ss
 
         count :: String -> HashMap Char Int
         count = foldr (M.alter $ pure . maybe 1 (+1)) M.empty
+
+part2 :: [String] -> [String]
+part2 = map (uncurry commonString . snd) . filter ((==1) . fst) . go
+  where
+    go :: [String] -> [(Int, (String, String))]
+    go ls = do
+      line1 <- ls
+      line2 <- ls
+      pure (differences line1 line2, (line1, line2))
+
+    differences :: String -> String -> Int
+    differences as = length . filter id . zipWith (/=) as
+
+    commonString :: String -> String -> String
+    commonString s1 = map snd . filter fst . zipWith (\a b -> (a == b, a)) s1
